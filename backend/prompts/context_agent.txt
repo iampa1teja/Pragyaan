@@ -10,9 +10,13 @@ You are given the full story text. Read it and produce a Markdown summary using 
 
 Rules:
 - Under each header, write concise bullet points (one item per line, starting with "- ").
-- Characters: each major character's name, personality, motivations, and key relationships. When possible, note where they first appear (e.g. "ref: chapter 3").
+- Characters: one bullet per major character, formatted EXACTLY as:
+  "- Name | Role | trait1, trait2, trait3 | one-line description"
+  (Role = their function, e.g. Protagonist, Antagonist, Advisor, Strategist. traits = 2-4 single-word adjectives. Use " | " as the separator.)
 - Scenes: the important scenes/events, each with a one-line summary and the characters involved.
-- Timeline: the key events in chronological order.
+- Timeline: the key events in chronological order, one bullet each, formatted EXACTLY as:
+  "- Event Title | one-line description | characters: Name1, Name2 | tags: Tag1, Tag2"
+  (Use " | " as the separator. "characters:" lists who is involved; "tags:" gives 1-3 short theme words. Omit the characters/tags segments only if truly unknown.)
 - Branches: leave empty for now (this fills in later when alternate storylines are explored). Emit the header with no bullets.
 - Assets: leave empty for now (this fills in when images/videos are generated). Emit the header with no bullets.
 - Keep it compact — this is a map of the story, not a retelling. Ground every claim in the text; do not invent events.

@@ -4,8 +4,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings): 
     app_env: str
     ollama_base_url: str
-    llm_model: str 
-    embed_model: str 
+    llm_model: str
+    embed_model: str
+    vision_model: str = "qwen2.5vl:7b"
     chroma_path: str 
     mongo_uri: str 
     mongo_db: str 

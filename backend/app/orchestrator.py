@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 
 from agents import Agent, Runner, function_tool, RunContextWrapper
@@ -68,6 +69,80 @@ async def search_context(wrapper: RunContextWrapper[StoryCtx], query: str, k: in
     return "\n\n".join(f"[{r['id']}] {r['document']}" for r in results)
 
 
+def _bullets(section: str) -> list[str]:
+    out = []
+    for line in section.split("\n"):
+        t = line.strip()
+        if t.startswith("- ") and t[2:].strip():
+            out.append(t[2:].strip())
+    return out
+
+
+def _csv(part: str, prefix: str) -> list[str]:
+    """From 'characters: A, B' return ['A','B'] when prefix matches."""
+    p = part.strip()
+    if p.lower().startswith(prefix):
+        p = p[len(prefix):]
+    return [x.strip() for x in p.split(",") if x.strip()]
+
+
+def timeline_events(story_id: str) -> list[dict]:
+    """Parse the Timeline section into ordered {title, description, characters, tags} events."""
+    try:
+        section = _CTX.read_section(story_id, "Timeline")
+    except Exception:
+        return []
+    events: list[dict] = []
+    for text in _bullets(section):
+        parts = [p.strip() for p in text.split("|")]
+        title = parts[0]
+        description, characters, tags = "", [], []
+        for part in parts[1:]:
+            low = part.lower()
+            if low.startswith("characters:"):
+                characters = _csv(part, "characters:")
+            elif low.startswith("tags:"):
+                tags = _csv(part, "tags:")
+            elif not description:
+                description = part
+        # fallback: old "Title: description" single-colon form
+        if not description and ":" in title:
+            title, description = [s.strip() for s in title.split(":", 1)]
+        events.append({"title": title, "description": description,
+                       "characters": characters, "tags": tags})
+    return events
+
+
+def characters_list(story_id: str) -> list[dict]:
+    """Parse the Characters section into {name, role, traits, description}."""
+    try:
+        section = _CTX.read_section(story_id, "Characters")
+    except Exception:
+        return []
+    people: list[dict] = []
+    for text in _bullets(section):
+        parts = [p.strip() for p in text.split("|")]
+        name = parts[0]
+        role = parts[1] if len(parts) > 1 else ""
+        traits = [t.strip() for t in parts[2].split(",")] if len(parts) > 2 and parts[2] else []
+        description = parts[3] if len(parts) > 3 else ""
+        # fallback: old "Name: description" form
+        if len(parts) == 1 and ":" in name:
+            name, description = [s.strip() for s in name.split(":", 1)]
+        if name:
+            people.append({"name": name, "role": role, "traits": traits, "description": description})
+    return people
+
+
+@function_tool
+def get_timeline(wrapper: RunContextWrapper[StoryCtx]) -> str:
+    """Return the story's timeline as a JSON array of {title, description} events, in order."""
+    events = timeline_events(wrapper.context.story_id)
+    if not events:
+        return "No timeline events recorded yet."
+    return json.dumps(events, ensure_ascii=False)
+
+
 @function_tool
 def remember(wrapper: RunContextWrapper[StoryCtx], section: str, note: str) -> str:
     """Persist an important new fact into a context.md section for future turns."""
@@ -80,7 +155,7 @@ def remember(wrapper: RunContextWrapper[StoryCtx], section: str, note: str) -> s
     return f"Saved to {section}."
 
 
-CONTEXT_TOOLS = [read_outline, read_section, read_context_lines, search_context]
+CONTEXT_TOOLS = [read_outline, read_section, read_context_lines, search_context, get_timeline]
 
 
 # ------------------------------------------------------------------ #
@@ -191,6 +266,66 @@ async def run_orchestrator(story_id: str, message: str) -> str:
 
     await _save_message(story_id, "assistant", reply, agent="orchestrator")
     return reply
+
+
+# ------------------------------------------------------------------ #
+# Dedicated mode runners (Characters / Perspective / Divergence pages) #
+# ------------------------------------------------------------------ #
+def _history_block(history: list[dict] | None) -> str:
+    if not history:
+        return ""
+    lines = [f"{m.get('role', 'user')}: {m.get('content', '')}" for m in history]
+    return "[RECENT CONVERSATION]\n" + "\n".join(lines) + "\n\n"
+
+
+async def run_interview(story_id: str, character: str, story_point: str,
+                        message: str, history: list[dict] | None = None) -> str:
+    agent = build_character_interview_agent(CONTEXT_TOOLS)
+    prompt = (
+        f"Character to embody: {character}\n"
+        f"Story point (timeline event you know up to): {story_point}\n\n"
+        f"{_history_block(history)}"
+        f"Interviewer asks: {message}"
+    )
+    result = await Runner.run(agent, prompt, context=StoryCtx(story_id=story_id))
+    return result.final_output
+
+
+async def run_perspective(story_id: str, character: str, event: str,
+                          message: str, history: list[dict] | None = None) -> str:
+    agent = build_perspective_agent(CONTEXT_TOOLS)
+    prompt = (
+        f"Perspective character: {character}\n"
+        f"Scene / event: {event}\n\n"
+        f"{_history_block(history)}"
+        f"Request: {message}"
+    )
+    result = await Runner.run(agent, prompt, context=StoryCtx(story_id=story_id))
+    return result.final_output
+
+
+async def run_divergence(story_id: str, event: str, change: str,
+                         message: str, history: list[dict] | None = None) -> str:
+    agent = build_divergence_agent(CONTEXT_TOOLS)
+    tail = (
+        f"Follow-up: {message}"
+        if message and message.strip()
+        else "Generate the alternate trajectory: immediate, short-term, medium-term, and long-term consequences."
+    )
+    prompt = (
+        f"Timeline event to change: {event}\n"
+        f"Change to apply: {change}\n\n"
+        f"{_history_block(history)}"
+        f"{tail}"
+    )
+    result = await Runner.run(agent, prompt, context=StoryCtx(story_id=story_id))
+    return result.final_output
+
+
+async def reset_context(story_id: str) -> int:
+    """Clear the conversation history for a story (does NOT touch files or context.md)."""
+    res = await mongo.chats().delete_many({"story_id": story_id})
+    return res.deleted_count
 
 
 def read_outline_text(story_id: str) -> str:

@@ -27,6 +27,48 @@ class ChatResponse(BaseModel):
     reply: str
 
 
+# --- Mode pages (Characters / Perspective / Divergence) ---
+class Msg(BaseModel):
+    role: str
+    content: str
+
+
+class InterviewRequest(BaseModel):
+    character: str
+    story_point: str = ""
+    message: str
+    history: list[Msg] = []
+
+
+class PerspectiveRequest(BaseModel):
+    character: str
+    event: str = ""
+    message: str
+    history: list[Msg] = []
+
+
+class DivergenceRequest(BaseModel):
+    event: str
+    change: str
+    message: str = ""
+    history: list[Msg] = []
+
+
+# --- Data (Characters / Timeline) ---
+class CharacterOut(BaseModel):
+    name: str
+    role: str = ""
+    traits: list[str] = []
+    description: str = ""
+
+
+class TimelineEvent(BaseModel):
+    title: str
+    description: str = ""
+    characters: list[str] = []
+    tags: list[str] = []
+
+
 # --- Assets ---
 class AssetOut(BaseModel):
     id: str

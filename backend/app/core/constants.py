@@ -15,6 +15,17 @@ class AgentName(str, Enum):
     DIVERGENCE = "divergence" 
     ANALYSIS = "analysis" 
 
+class StoryStatus(str, Enum): 
+    INGESTING = "ingesting" 
+    INGESTED = "ingested" 
+    READY = "ready" 
+    FAILED = "failed" 
+
+class AssetType(str, Enum): 
+    IMAGE = "image" 
+    VIDEO = "video" 
+    SCRIPT = "script" 
+
 CONTEXT_SECTIONS = ["Characters", "Scenes", "Timeline", "Branches", "Assets"] 
 OUTLINE_START="<!-- OUTLINE -->"
 OUTLINE_END="<!-- /OUTLINE -->"

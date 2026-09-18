@@ -1,2 +1,33 @@
+# Environment variables & secrets (Crucial: never commit API keys)
 .env
+*.env
+backend/.env
+
+# Virtual environments
 venv/
+.venv/
+env/
+backend/venv/
+
+# Python bytecode & caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+
+# Databases & local storage
+chroma_db/
+backend/chroma_db/
+*.sqlite3
+
+# Uploaded story files
+uploads/
+backend/uploads/*
+!backend/uploads/sample.docx
+
+# OS & IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

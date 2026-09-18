@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Narrative Engine</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-area">
+        <span class="logo-icon">&#9829;</span>
+        <span class="logo-title">Narrative Engine</span>
+      </div>
+      <nav>
+        <button class="nav-btn active" data-tab="upload">&#128193; Upload</button>
+        <button class="nav-btn" data-tab="dashboard">&#128220; Dashboard</button>
+        <button class="nav-btn" data-tab="interview">&#128172; Interview</button>
+        <button class="nav-btn" data-tab="divergence">&#128256; Divergence</button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="view-upload" class="view-section upload-grid active">
+        <div class="card card-peach">
+          <div class="card-header">
+            <span class="logo-icon">&#9829;</span>
+            <h2 class="card-title">Upload Files</h2>
+          </div>
+          <div class="dropzone" id="dropzone">
+            <div class="pixel-folder-icon"></div>
+            <p class="dropzone-text">Drag & Drop Story File</p>
+            <input type="file" id="file-input" style="display: none;" accept=".pdf,.docx,.txt">
+            <button type="button" class="btn-pill" id="btn-browse">Browse</button>
+          </div>
+          <p class="card-caption">Upload PDF, DOCX, or TXT stories to extract characters, timeline events, and lore boundaries.</p>
+        </div>
+
+        <div class="card card-lavender">
+          <div class="card-header">
+            <h2 class="card-title">Story Files</h2>
+          </div>
+          <div class="file-list" id="story-file-list"></div>
+          <button class="btn-pill btn-full" id="btn-load-selected">Open Selected Story</button>
+        </div>
+      </section>
+
+      <section id="view-dashboard" class="view-section">
+        <div class="grid-2col">
+          <div class="card card-peach">
+            <div class="card-header">
+              <span class="logo-icon">&#9829;</span>
+              <h2 class="card-title" id="dash-story-title">Active Story</h2>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Characters & Profiles</label>
+              <div id="dash-characters-list" class="timeline-list"></div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 16px;">
+              <button class="btn-pill" id="btn-go-interview">&#128172; Interview Mode</button>
+              <button class="btn-pill" id="btn-go-divergence">&#128256; Divergence Mode</button>
+            </div>
+          </div>
+
+          <div class="card card-lavender">
+            <div class="card-header">
+              <h2 class="card-title">Story Timeline</h2>
+            </div>
+            <div id="dash-timeline-list" class="timeline-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-interview" class="view-section">
+        <div class="grid-2col">
+          <div class="card card-lavender">
+            <div class="card-header">
+              <span class="logo-icon">&#9829;</span>
+              <h2 class="card-title">Setup Interview</h2>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Select Character</label>
+              <select id="interview-character-select" class="pixel-select"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Timeline Boundary (Point in Story)</label>
+              <select id="interview-timeline-select" class="pixel-select"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Known Events at this Point</label>
+              <div id="interview-known-events" class="timeline-list" style="max-height: 240px;"></div>
+            </div>
+          </div>
+
+          <div class="card card-peach">
+            <div class="card-header">
+              <h2 class="card-title">Interview Terminal</h2>
+            </div>
+            <div class="chat-box" id="interview-chat-box"></div>
+            <form id="interview-form" class="input-row">
+              <input type="text" id="interview-question-input" class="pixel-input" placeholder="Ask anything in character..." required>
+              <button type="submit" class="btn-pill">Send</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-divergence" class="view-section">
+        <div class="card card-purple">
+          <div class="card-header">
+            <span class="logo-icon">&#9829;</span>
+            <h2 class="card-title">Narrative Divergence Engine</h2>
+          </div>
+          <div class="grid-2col">
+            <div class="form-group">
+              <label class="form-label">Select Divergence Point (Event)</label>
+              <select id="divergence-event-select" class="pixel-select"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Proposed "What If...?" Decision</label>
+              <input type="text" id="divergence-change-input" class="pixel-input" placeholder="E.g., Daniel lied to Alice about the intruder..." required>
+            </div>
+          </div>
+          <button id="btn-run-divergence" class="btn-pill" style="margin-top: 10px;">Simulate Causal Divergence</button>
+        </div>
+
+        <div id="divergence-results" style="display: none; display: flex; flex-direction: column; gap: 20px;">
+          <div class="grid-2col">
+            <div class="card card-peach">
+              <div class="card-header">
+                <h3 class="card-title">Direct Consequences</h3>
+              </div>
+              <div id="div-consequences" class="timeline-list"></div>
+            </div>
+            <div class="card card-lavender">
+              <div class="card-header">
+                <h3 class="card-title">Relationship Shifts</h3>
+              </div>
+              <div id="div-relationships" class="timeline-list"></div>
+            </div>
+          </div>
+
+          <div class="card card-peach">
+            <div class="card-header">
+              <h3 class="card-title">Branched Timeline Comparison</h3>
+            </div>
+            <div class="branch-comparison">
+              <div class="timeline-box">
+                <h4 style="font-family: var(--font-pixel); font-size: 11px;">Original Timeline</h4>
+                <div id="div-original-timeline" class="timeline-list"></div>
+              </div>
+              <div class="timeline-box">
+                <h4 style="font-family: var(--font-pixel); font-size: 11px;">Altered Timeline</h4>
+                <div id="div-altered-timeline" class="timeline-list"></div>
+              </div>
+            </div>
+            <div style="margin-top: 16px; border: var(--border); border-radius: var(--radius-md); padding: 14px; background: rgba(255,255,255,0.4);">
+              <h4 style="font-family: var(--font-pixel); font-size: 11px; margin-bottom: 8px;">New Story Climax & Ending</h4>
+              <p id="div-new-ending" style="font-size: 14px; line-height: 1.5;"></p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="loading-card">
+      <span class="logo-icon" style="font-size: 32px;">&#9829; &#9829; &#9829;</span>
+      <p class="loading-text" id="loading-message">Processing story data...</p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

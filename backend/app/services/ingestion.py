@@ -2,9 +2,9 @@ from pathlib import Path
 from dataclasses import dataclass
 from pypdf import PdfReader
 
-from .embeddings import embed_query
+from .embeddings import embed_texts
 from ..store.chroma_store import ChromaStore
-from ..store.mongo import get_db
+from ..store.mongo import stories
 
 #--------Parser--------
 def parse_text(path: Path) -> str: 
@@ -75,7 +75,7 @@ async def ingest_story(story_id: str, file_path: Path,) -> None:
         raise ValueError("No chunks generated from file")
 
     documents = [chunk.text for chunk in chunks]
-    embeddings = embed_query(documents)
+    embeddings = await embed_texts(documents)
 
     ids = [chunk.id for chunk in chunks]
 
@@ -97,8 +97,7 @@ async def ingest_story(story_id: str, file_path: Path,) -> None:
         embeddings=embeddings,
     )
 
-    collection = get_db().stories()
-    await collection.update_one(
+    await stories().update_one(
         {"_id": story_id},
-        {"$set": {"status": "ingested"}},
+        {"$set": {"status": "ingested", "n_chunks": len(chunks)}},
     )

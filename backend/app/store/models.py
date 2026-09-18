@@ -7,13 +7,13 @@ class Asset(BaseModel):
     id: str 
     story_id: str 
     type: AssetType 
-    path: str 
-    prompt: str 
-    scene_id: str | None = None 
+    path: str
+    prompt: str | None = None
+    scene_id: str | None = None
     meta: dict = Field(default_factory=dict) 
     created_at: str = Field(default_factory=now_iso)
 
-class Charracter(BaseModel): 
+class Character(BaseModel):
     name: str 
     description: str = "" 
     traits: list[str] = Field(default_factory=list) 
@@ -22,8 +22,8 @@ class Charracter(BaseModel):
 
 class ChatMessage(BaseModel): 
     role: Literal["user", "assistant", "system"]
-    content: str 
-    agent: str 
+    content: str
+    agent: str | None = None
     ts: str = Field(default_factory=now_iso)
 
 class ChatSession(BaseModel): 

@@ -8,7 +8,7 @@ class ChromaStore:
         self.path = path or settings.chroma_path
         self.client = chromadb.PersistentClient(path=self.path) 
 
-    def collections(self, story_id: str): 
+    def collection(self, story_id: str):
         name = f"story_{story_id}"
         return self.client.get_or_create_collection(name=name)
 
@@ -23,8 +23,8 @@ class ChromaStore:
         )
 
     def query(self, story_id: str, query_embedding: list[float], k: int = 5):
-        collection = self.collections(story_id)
-        result = collection.query(query_embedding = [query_embedding], n_results = k)
+        collection = self.collection(story_id)
+        result = collection.query(query_embeddings = [query_embedding], n_results = k)
 
         output = []
         for i, chunk_id in enumerate(result["ids"][0]):

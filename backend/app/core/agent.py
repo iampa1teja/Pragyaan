@@ -1,44 +1,50 @@
 from agents import Agent
 from .utils import build_agent
+from ..services.llm import get_subagent_model
+
+
+def _fast() -> "object":
+    """Fast secondary model for specialized sub-agents (built per call)."""
+    return get_subagent_model()
 
 
 def build_context_agent() -> Agent:
-    """Turns raw story text into the 5 markdown sections (bodies only)."""
+    """Turns raw story text into the 5 markdown sections (bodies only). Runs on the primary model for extraction quality."""
     return build_agent(name="context", prompt_file="context_agent")
 
 
 def build_character_interview_agent(tools: list | None = None) -> Agent:
     """Answers in-character at a selected story point, using only knowledge up to then."""
-    return build_agent(name="interview", prompt_file="character_interview", tools=tools)
+    return build_agent(name="interview", prompt_file="character_interview", tools=tools, model=_fast())
 
 
 def build_perspective_agent(tools: list | None = None) -> Agent:
     """Retells a scene strictly from a chosen character's point of view."""
-    return build_agent(name="perspective", prompt_file="perspective", tools=tools)
+    return build_agent(name="perspective", prompt_file="perspective", tools=tools, model=_fast())
 
 
 def build_divergence_agent(tools: list | None = None) -> Agent:
     """Changes a story event and generates logically connected alternate consequences."""
-    return build_agent(name="divergence", prompt_file="divergence", tools=tools)
+    return build_agent(name="divergence", prompt_file="divergence", tools=tools, model=_fast())
 
 
 def build_analysis_agent(tools: list | None = None) -> Agent:
     """Analyzes characters, relationships, plot structure, and contradictions."""
-    return build_agent(name="analysis", prompt_file="analysis", tools=tools)
+    return build_agent(name="analysis", prompt_file="analysis", tools=tools, model=_fast())
 
 
-# --- Stretch: visual agents ---
+# --- Stretch: visual agents (also on the fast model) ---
 
 def build_character_design_agent(tools: list | None = None) -> Agent:
     """Produces image prompts for a character's design, outfits, and look."""
-    return build_agent(name="character_design", prompt_file="character_design", tools=tools)
+    return build_agent(name="character_design", prompt_file="character_design", tools=tools, model=_fast())
 
 
 def build_concept_art_agent(tools: list | None = None) -> Agent:
     """Converts scenes and environments into concept-art image prompts."""
-    return build_agent(name="concept_art", prompt_file="concept_art", tools=tools)
+    return build_agent(name="concept_art", prompt_file="concept_art", tools=tools, model=_fast())
 
 
 def build_video_agent(tools: list | None = None) -> Agent:
     """Converts selected scenes into storyboard/video descriptions."""
-    return build_agent(name="video", prompt_file="video", tools=tools)
+    return build_agent(name="video", prompt_file="video", tools=tools, model=_fast())

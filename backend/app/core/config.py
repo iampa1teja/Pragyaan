@@ -7,7 +7,10 @@ class Settings(BaseSettings):
     llm_model: str
     embed_model: str
     vision_model: str = "qwen2.5vl:7b"
-    chroma_path: str 
+    # Fast secondary model for specialized sub-agents (offloads the heavy orchestrator)
+    subagent_base_url: str = "http://localhost:11435/v1"
+    subagent_model: str = "llama3.1:latest"
+    chroma_path: str
     mongo_uri: str 
     mongo_db: str 
     data_dir: str 

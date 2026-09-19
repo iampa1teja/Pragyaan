@@ -3,7 +3,14 @@ from agents import OpenAIChatCompletionsModel, set_tracing_disabled
 from ..core.config import get_settings
 
 def get_client():
-    return AsyncOpenAI(base_url=get_settings().ollama_base_url, api_key="ollama")
+    # Generous timeout for slow local models, but finite + few retries so a
+    # dropped SSH tunnel / dead Ollama fails fast instead of hanging forever.
+    return AsyncOpenAI(
+        base_url=get_settings().ollama_base_url,
+        api_key="ollama",
+        timeout=300.0,
+        max_retries=1,
+    )
 
 def get_model(name: str | None = None) -> OpenAIChatCompletionsModel:
     settings = get_settings()

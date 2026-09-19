@@ -227,6 +227,9 @@ def _build_input(overview: str, history: str, message: str) -> str:
 # ------------------------------------------------------------------ #
 # Public entry points                                                 #
 # ------------------------------------------------------------------ #
+CONTEXT_BUILD_BUDGET = 16000  # max chars fed to the context agent (keeps big stories fast)
+
+
 async def build_context(story_id: str) -> None:
     """Run the context agent over the story's chunks and write context.md."""
     got = _get_chroma().collection(story_id).get(include=["documents", "metadatas"])
@@ -234,7 +237,16 @@ async def build_context(story_id: str) -> None:
         zip(got["documents"], got["metadatas"]),
         key=lambda p: (p[1] or {}).get("char_start", 0),
     )
-    text = "\n\n".join(doc for doc, _ in pairs)
+    docs = [d for d, _ in pairs]
+    text = "\n\n".join(docs)
+
+    # For long stories, sample chunks evenly across the arc to stay within budget
+    # (the whole story in one prompt is slow and can overflow the model's context).
+    if len(text) > CONTEXT_BUILD_BUDGET and len(docs) > 1:
+        avg = max(1, len(text) // len(docs))
+        keep = max(1, CONTEXT_BUILD_BUDGET // avg)
+        step = max(1, len(docs) // keep)
+        text = "\n\n".join(docs[::step])[:CONTEXT_BUILD_BUDGET]
 
     result = await Runner.run(build_context_agent(), text)
     sections = split_sections(result.final_output)

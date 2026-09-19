@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STORYFORGE</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['"Archivo Black"', 'Impact', 'sans-serif'],
+            mono: ['"Space Mono"', 'monospace'],
+            body: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            nb: {
+              bg:      'var(--nb-bg)',
+              surface: 'var(--nb-surface)',
+              text:    'var(--nb-text)',
+              border:  'var(--nb-border)',
+              shadow:  'var(--nb-shadow)',
+            },
+            accent: {
+              yellow: '#FFD23F',
+              pink:   '#FF5C8A',
+              blue:   '#4D8BFF',
+              green:  '#3DDC84',
+              purple: '#B980F0',
+              red:    '#FF5C5C',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body class="font-body min-h-screen bg-[var(--nb-bg)] text-[var(--nb-text)] overflow-x-hidden">
+
+  <!-- TOP BAR -->
+  <header class="sticky top-0 z-50 bg-[var(--nb-surface)] border-b-[4px] border-[var(--nb-border)]">
+    <div class="flex items-center justify-between px-3 sm:px-4 py-2.5 gap-3">
+      <!-- LEFT -->
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="toggle-left-sidebar" class="brutal-btn-sm brutal-btn bg-[var(--nb-surface)] text-[var(--nb-text)] p-1.5 flex items-center justify-center w-9 h-9" aria-label="Toggle sidebar">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <a href="#/home" class="flex items-center gap-2 text-[var(--nb-text)] hover:opacity-80">
+          <h1 class="font-display text-lg sm:text-xl tracking-tight uppercase select-none leading-none">
+            STORY<span class="bg-[#FF5C8A] text-[#111] px-1.5 py-0.5 ml-0.5 inline-block border-[3px] border-[var(--nb-border)] transform rotate-1">FORGE</span>
+          </h1>
+          <span class="hidden md:block font-mono text-[9px] uppercase tracking-[0.15em] opacity-40 leading-tight max-w-[120px]">WORLDS DEEPER.<br>STORIES BRIGHTER.</span>
+        </a>
+      </div>
+
+      <!-- CENTER -->
+      <div class="hidden sm:flex flex-1 max-w-md mx-4">
+        <div class="flex items-center w-full border-[3px] border-[var(--nb-border)] bg-[var(--nb-bg)] px-3 py-1.5 gap-2">
+          <svg class="w-4 h-4 opacity-40 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" placeholder="Search your story, characters, scenes…" class="bg-transparent w-full text-xs font-body placeholder:font-mono placeholder:text-[10px] placeholder:uppercase placeholder:tracking-wider placeholder:opacity-40 focus:outline-none" disabled />
+          <span class="font-mono text-[9px] bg-[var(--nb-surface)] border-[2px] border-[var(--nb-border)] px-1.5 py-0.5 opacity-50 shrink-0">⌘K</span>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="upload-new-btn" class="brutal-btn bg-[#FFD23F] text-[#111] font-display text-[11px] uppercase tracking-wider px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5">
+          <span class="text-sm font-black">+</span><span class="hidden sm:inline">New</span>
+        </button>
+        <button id="theme-toggle" class="brutal-btn-sm brutal-btn bg-[var(--nb-surface)] text-[var(--nb-text)] p-1.5 w-9 h-9 flex items-center justify-center" aria-label="Toggle theme">
+          <svg class="icon-sun w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg class="icon-moon w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- APP SHELL -->
+  <div class="flex" style="height: calc(100vh - 60px);">
+
+    <!-- LEFT NAV RAIL -->
+    <aside id="left-sidebar" class="sidebar-expanded bg-[var(--nb-surface)] border-r-[3px] border-[var(--nb-border)] flex flex-col py-3 overflow-y-auto shrink-0 z-40">
+      <nav class="flex flex-col gap-0.5 px-2">
+        <a href="#/home" data-nav="home" class="nav-item">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span class="nav-label">Home</span>
+        </a>
+        <a href="#/characters" data-nav="characters" class="nav-item">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span class="nav-label">Characters</span>
+        </a>
+        <a href="#/timeline" data-nav="timeline" class="nav-item">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span class="nav-label">Timeline</span>
+        </a>
+        <a href="#/perspective" data-nav="perspective" class="nav-item">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          <span class="nav-label">Perspective Shift</span>
+        </a>
+        <a href="#/divergence" data-nav="divergence" class="nav-item">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+          <span class="nav-label">Divergence Mode</span>
+        </a>
+        <a href="#/studio" data-nav="studio" class="nav-item">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="0"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span class="nav-label">Generative Studio</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- CENTER CONTENT -->
+    <main id="center-content" class="flex-1 min-w-0 overflow-y-auto relative">
+      
+      <!-- EMPTY STATE GATE (shown when not on Home and no story loaded) -->
+      <section id="page-gate" class="page-section hidden absolute inset-0 bg-[var(--nb-bg)] z-30 flex flex-col items-center justify-center p-6 text-center">
+        <h2 class="font-display text-2xl uppercase mb-4">No Story Loaded</h2>
+        <p class="font-mono text-sm opacity-60 mb-6">Upload a story on Home first.</p>
+        <a href="#/home" class="brutal-btn bg-[#FF5C8A] text-[#111] px-6 py-2 font-display uppercase">Go to Home</a>
+      </section>
+
+      <!-- PAGE: HOME -->
+      <section id="page-home" class="page-section hidden p-4 sm:p-6 max-w-5xl mx-auto">
+        <!-- Before Story State -->
+        <div id="home-upload-state" class="flex flex-col items-center justify-center min-h-[70vh]">
+          <h2 class="font-display text-3xl sm:text-4xl uppercase tracking-wider text-center mb-2">Welcome to StoryForge</h2>
+          <h3 class="font-display text-xl sm:text-2xl uppercase tracking-wider text-center mb-6">
+            Bring your story <span class="bg-[#FF5C8A] text-[#111] px-2 py-1 transform rotate-1 inline-block border-[3px] border-[var(--nb-border)]">to life</span>
+          </h3>
+          <p class="text-center font-mono text-xs opacity-60 mb-8 max-w-md">Upload your story files, build your world, and explore it from every angle.</p>
+          
+          <div id="drop-zone" class="brutal-btn w-full max-w-lg bg-[var(--nb-surface)] border-[4px] border-dashed border-[var(--nb-border)] shadow-[6px_6px_0_0_var(--nb-shadow)] p-10 sm:p-14 text-center cursor-pointer group mb-6 relative">
+            <input type="file" id="file-input" multiple accept=".txt,.md,.pdf,.docx,.png,.jpg,.jpeg,.webp,.gif,.bmp,image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+            <div class="flex flex-col items-center gap-4 pointer-events-none">
+              <svg class="w-14 h-14 opacity-60 group-hover:opacity-100 group-hover:text-[#FF5C8A] transition-all" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+              </svg>
+              <p class="font-display uppercase tracking-wider text-sm">Upload your story files</p>
+              <p class="font-mono text-[10px] opacity-50 uppercase">Drag and drop files here, or click to browse</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg w-full mb-6 text-left">
+            <div class="border-[3px] border-[var(--nb-border)] bg-[var(--nb-surface)] shadow-[4px_4px_0_0_var(--nb-shadow)] p-4">
+              <h4 class="font-display uppercase text-sm mb-2">Supported Files</h4>
+              <p class="font-mono text-[10px] opacity-70">PDF, TXT, DOCX, MD, IMG</p>
+            </div>
+            <div class="border-[3px] border-[var(--nb-border)] bg-[var(--nb-surface)] shadow-[4px_4px_0_0_var(--nb-shadow)] p-4">
+              <h4 class="font-display uppercase text-sm mb-2">What happens next?</h4>
+              <ol class="font-mono text-[10px] opacity-70 list-decimal pl-4 space-y-1">
+                <li>Process & organize</li>
+                <li>Extract key elements</li>
+                <li>Explore, chat & create</li>
+              </ol>
+            </div>
+          </div>
+          <p class="font-mono text-[9px] opacity-30 uppercase">Your files remain private and are only used for your session.</p>
+          <div id="file-list" class="mt-4 flex flex-wrap justify-center gap-2 max-w-lg"></div>
+
+          <button id="upload-btn" disabled class="brutal-btn bg-[#FFD23F] text-[#111] font-display uppercase tracking-wider text-base px-8 py-3 mt-6 opacity-50 cursor-not-allowed">
+            Forge Story
+          </button>
+        </div>
+
+        <!-- Building State -->
+        <div id="home-building-state" class="hidden flex flex-col items-center justify-center min-h-[70vh]">
+          <p class="font-display text-xl uppercase mb-6">Forging Context…</p>
+          <div id="status-pill" class="status-pill font-display text-sm uppercase tracking-[0.3em] px-6 py-2.5 border-[3px] border-[var(--nb-border)] shadow-[6px_6px_0_0_var(--nb-shadow)] bg-[#FFD23F] text-[#111]">
+            INGESTING
+          </div>
+          <div class="flex gap-2 mt-6">
+            <div class="w-4 h-4 bg-[#FFD23F] border-[2px] border-[var(--nb-border)] thinking-dot"></div>
+            <div class="w-4 h-4 bg-[#FF5C8A] border-[2px] border-[var(--nb-border)] thinking-dot"></div>
+            <div class="w-4 h-4 bg-[#4D8BFF] border-[2px] border-[var(--nb-border)] thinking-dot"></div>
+          </div>
+          <div class="flex items-center gap-4 mt-6">
+            <p id="poll-error-msg" class="hidden font-mono text-xs text-[#FF5C5C] uppercase"></p>
+            <button id="poll-retry-btn" class="hidden brutal-btn-sm bg-[#FF5C5C] text-[#111] px-3 py-1 font-display uppercase text-[10px]">Retry</button>
+          </div>
+        </div>
+
+        <!-- Dashboard State (After Load) -->
+        <div id="home-dashboard-state" class="hidden space-y-8">
+          <div class="flex items-center justify-between">
+            <h2 class="font-display text-3xl uppercase">Story Dashboard</h2>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Data Section -->
+            <div class="space-y-4">
+              <div class="bg-[var(--nb-surface)] border-[4px] border-[var(--nb-border)] shadow-[6px_6px_0_0_var(--nb-shadow)] p-4">
+                <h3 class="font-display uppercase mb-2">Files</h3>
+                <ul id="dash-files-list" class="font-mono text-xs opacity-80 list-disc pl-4 space-y-1"></ul>
+              </div>
+              <div class="bg-[var(--nb-surface)] border-[4px] border-[var(--nb-border)] shadow-[6px_6px_0_0_var(--nb-shadow)] p-4">
+                <h3 class="font-display uppercase mb-2">Story Context</h3>
+                <p class="font-mono text-xs opacity-80">Story is loaded and ready for exploration.</p>
+              </div>
+              <div class="bg-[var(--nb-surface)] border-[4px] border-[var(--nb-border)] shadow-[6px_6px_0_0_var(--nb-shadow)] p-4">
+                <h3 class="font-display uppercase mb-2">Assets</h3>
+                <div id="dash-assets-list" class="font-mono text-xs opacity-80">None yet.</div>
+              </div>
+              <div class="bg-[var(--nb-surface)] border-[4px] border-[var(--nb-border)] shadow-[6px_6px_0_0_var(--nb-shadow)] p-4">
+                <h3 class="font-display uppercase mb-2">Recent Files</h3>
+                <ul id="recent-files-list" class="font-mono text-xs opacity-80 list-disc pl-4 space-y-1">No files yet.</ul>
+              </div>
+              <div class="bg-[var(--nb-surface)] border-[4px] border-[var(--nb-border)] shadow-[6px_6px_0_0_var(--nb-shadow)] p-4">
+                <h3 class="font-display uppercase mb-2">Quick Actions</h3>
+                <div class="flex gap-2">
+                  <button id="reset-context-btn" class="brutal-btn bg-[#FF5C5C] text-[#111] px-3 py-2 font-display text-xs uppercase flex-1">Reset Context</button>
+                  <button class="brutal-btn bg-[#4D8BFF] text-[#111] px-3 py-2 font-display text-xs uppercase flex-1">View Data</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tools Section -->
+            <div class="space-y-4">
+              <h3 class="font-display uppercase text-xl">Explore Tools</h3>
+              <a href="#/characters" class="block bg-[#FF5C8A] text-[#111] border-[4px] border-[var(--nb-border)] shadow-[6px_6px_0_0_var(--nb-shadow)] p-4 brutal-hover">
+                <h4 class="font-display uppercase">Character Interview</h4>
+                <p class="font-mono text-xs opacity-80 mt-1">Chat with your characters at specific story points.</p>
+              </a>
+              <a href="#/perspective" class="block bg-[#4D8BFF] text-[#111] border-[4px] border-[var(--nb-border)] shadow-[6px_6px_0_0_var(--nb-shadow)] p-4 brutal-hover">
+                <h4 class="font-display uppercase">Perspective Shift</h4>
+                <p class="font-mono text-xs opacity-80 mt-1">Reconstruct scenes from a character's POV.</p>
+              </a>
+              <a href="#/divergence" class="block bg-[#FFD23F] text-[#111] border-[4px] border-[var(--nb-border)] shadow-[6px_6px_0_0_var(--nb-shadow)] p-4 brutal-hover">
+                <h4 class="font-display uppercase">Divergence Mode</h4>
+                <p class="font-mono text-xs opacity-80 mt-1">Explore alternate trajectories.</p>
+              </a>
+              <a href="#/studio" class="block bg-[#B980F0] text-[#111] border-[4px] border-[var(--nb-border)] shadow-[6px_6px_0_0_var(--nb-shadow)] p-4 brutal-hover">
+                <h4 class="font-display uppercase">Generative Studio</h4>
+                <p class="font-mono text-xs opacity-80 mt-1">Generate concepts and art.</p>
+              </a>
+            </div>
+          </div>
+
+          <div class="bg-[var(--nb-surface)] border-[4px] border-[var(--nb-border)] shadow-[6px_6px_0_0_var(--nb-shadow)] p-4">
+            <h3 class="font-display uppercase mb-2">Main Chat</h3>
+            <div id="home-chat-messages" class="h-48 overflow-y-auto p-2 bg-[var(--nb-bg)] mb-3 border-[2px] border-[var(--nb-border)] flex flex-col gap-3"></div>
+            <div class="flex gap-2">
+              <input type="text" id="home-chat-input" class="flex-1 border-[2px] border-[var(--nb-border)] bg-[var(--nb-bg)] px-3 py-2 font-mono text-xs focus:outline-none" placeholder="Chat with your story...">
+              <button id="home-chat-send" class="brutal-btn bg-[#3DDC84] text-[#111] px-4 font-display uppercase">Send</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE: CHARACTERS (Interview) -->
+      <section id="page-characters" class="page-section hidden h-full flex flex-col p-4 sm:p-6 max-w-6xl mx-auto w-full">
+        <h2 class="font-display text-2xl uppercase mb-4 shrink-0">CHARACTER INTERVIEW — Step into their mind. Ask anything.</h2>
+        <div class="flex flex-1 min-h-0 gap-6 h-full flex-col md:flex-row">
+          <!-- Left Col -->
+          <div class="w-full md:w-64 flex flex-col gap-3 shrink-0 border-[4px] border-[var(--nb-border)] bg-[var(--nb-surface)] shadow-[6px_6px_0_0_var(--nb-shadow)] p-3 overflow-y-auto">
+            <h3 class="font-display uppercase text-sm">Select a Character</h3>
+            <input type="text" id="char-search" placeholder="Search..." class="border-[2px] border-[var(--nb-border)] bg-[var(--nb-bg)] px-2 py-1 font-mono text-xs focus:outline-none placeholder:font-mono placeholder:text-[10px] placeholder:uppercase placeholder:tracking-wider placeholder:opacity-40">
+            <div id="char-list" class="flex flex-col gap-2 overflow-y-auto flex-1"></div>
+          </div>
+          <!-- Center Col -->
+          <div class="flex-1 flex flex-col border-[4px] border-[var(--nb-border)] bg-[var(--nb-surface)] shadow-[6px_6px_0_0_var(--nb-shadow)]">
+            <div class="p-3 border-b-[4px] border-[var(--nb-border)] flex items-center justify-between gap-3 bg-[var(--nb-bg)]">
+              <div class="flex flex-col">
+                <span class="font-mono text-[10px] uppercase opacity-60">Interview at:</span>
+                <select id="char-timeline-select" class="border-[2px] border-[var(--nb-border)] bg-[var(--nb-surface)] font-mono text-xs px-2 py-1 max-w-[200px]"></select>
+              </div>
+              <div id="char-header" class="text-right flex flex-col items-end">
+                <h3 id="char-name-header" class="font-display uppercase text-lg">Select a character</h3>
+                <p id="char-role-header" class="font-mono text-xs opacity-60"></p>
+                <div id="char-traits" class="flex flex-wrap justify-end gap-1 mt-2"></div>
+                <div id="char-quote" class="mt-2 text-sm italic"></div>
+              </div>
+            </div>
+            <div id="char-messages" class="flex-1 overflow-y-auto p-4 bg-[var(--nb-bg)] flex flex-col gap-3"></div>
+            <div class="p-3 border-t-[4px] border-[var(--nb-border)] space-y-2">
+              <div id="char-chips" class="flex gap-2 overflow-x-auto pb-1"></div>
+              <div class="flex gap-2">
+                <input type="text" id="char-input" disabled class="flex-1 border-[2px] border-[var(--nb-border)] bg-[var(--nb-bg)] px-3 py-2 font-mono text-xs focus:outline-none" placeholder="Ask something...">
+                <button id="char-send" disabled class="brutal-btn bg-[#FFD23F] text-[#111] px-4 font-display uppercase">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="font-mono text-[10px] opacity-40 uppercase mt-4 text-center">Tip: select a different timeline event to see how their perspective changes.</p>
+      </section>
+
+      <!-- PAGE: TIMELINE -->
+      <section id="page-timeline" class="page-section hidden p-4 sm:p-6 max-w-4xl mx-auto h-full flex flex-col">
+        <h2 class="font-display text-2xl uppercase mb-6 shrink-0">STORY TIMELINE — Explore the flow of your story.</h2>
+        <div class="flex-1 overflow-y-auto pr-4 border-[4px] border-[var(--nb-border)] bg-[var(--nb-surface)] p-6 shadow-[6px_6px_0_0_var(--nb-shadow)]">
+          <div id="timeline-container" class="relative border-l-[4px] border-[var(--nb-border)] ml-4 pl-6 space-y-8 py-4">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE: PERSPECTIVE SHIFT -->
+      <section id="page-perspective" class="page-section hidden p-4 sm:p-6 max-w-4xl mx-auto h-full flex flex-col">
+        <h2 class="font-display text-2xl uppercase mb-4 shrink-0">PERSPECTIVE SHIFT — Reconstruct scenes strictly from a selected character's perspective.</h2>
+        <div class="flex flex-col flex-1 border-[4px] border-[var(--nb-border)] bg-[var(--nb-surface)] shadow-[6px_6px_0_0_var(--nb-shadow)]">
+          <div class="p-3 border-b-[4px] border-[var(--nb-border)] flex gap-4 bg-[var(--nb-bg)] items-center">
+            <select id="persp-char-select" class="border-[2px] border-[var(--nb-border)] bg-[var(--nb-surface)] font-mono text-xs px-2 py-1 flex-1">
+              <option value="">Select Character...</option>
+            </select>
+            <select id="persp-event-select" class="border-[2px] border-[var(--nb-border)] bg-[var(--nb-surface)] font-mono text-xs px-2 py-1 flex-1">
+              <option value="">Select Event (Optional)...</option>
+            </select>
+          </div>
+          <div id="persp-info-card" class="bg-[var(--nb-surface)] p-4 m-4 mb-0 border-[2px] border-[var(--nb-border)] font-mono text-xs opacity-80">
+            Explore the story through a character's eyes. Ask questions, request rewrites, or dive into their thoughts.
+          </div>
+          <div id="persp-messages" class="flex-1 overflow-y-auto p-4 bg-[var(--nb-bg)] flex flex-col gap-3"></div>
+          <div class="p-3 border-t-[4px] border-[var(--nb-border)] flex gap-2">
+            <input type="text" id="persp-input" class="flex-1 border-[2px] border-[var(--nb-border)] bg-[var(--nb-bg)] px-3 py-2 font-mono text-xs focus:outline-none" placeholder="Ask anything from their perspective...">
+            <button id="persp-send" class="brutal-btn bg-[#4D8BFF] text-[#111] px-4 font-display uppercase">Send</button>
+          </div>
+        </div>
+        <p class="font-mono text-[10px] opacity-40 uppercase mt-4 text-center">Responses are generated using your uploaded story files and character context.</p>
+      </section>
+
+      <!-- PAGE: DIVERGENCE -->
+      <section id="page-divergence" class="page-section hidden p-4 sm:p-6 max-w-5xl mx-auto h-full flex flex-col">
+        <h2 class="font-display text-2xl uppercase mb-4 shrink-0">DIVERGENCE MODE — Change a story event and generate alternate consequences.</h2>
+        <div class="flex flex-col flex-1 border-[4px] border-[var(--nb-border)] bg-[var(--nb-surface)] shadow-[6px_6px_0_0_var(--nb-shadow)]">
+          <div class="p-4 border-b-[4px] border-[var(--nb-border)] bg-[var(--nb-bg)] space-y-3">
+            <p class="font-mono text-xs opacity-80">Select an event and describe what changes. The backend will simulate immediate to long-term ripples.</p>
+            <div class="flex gap-3">
+              <select id="div-event-select" class="border-[2px] border-[var(--nb-border)] bg-[var(--nb-surface)] font-mono text-xs px-2 py-1 w-1/3">
+                <option value="">Select an Event...</option>
+              </select>
+              <input type="text" id="div-change-input" class="flex-1 border-[2px] border-[var(--nb-border)] bg-[var(--nb-surface)] px-2 py-1 font-mono text-xs focus:outline-none" placeholder="What do you want to change? (e.g. they say no instead of yes)">
+              <button id="div-generate-btn" class="brutal-btn bg-[#FFD23F] text-[#111] px-4 font-display uppercase">Simulate</button>
+            </div>
+          </div>
+          <div id="div-messages" class="flex-1 overflow-y-auto p-4 bg-[var(--nb-bg)] flex flex-col gap-3"></div>
+          <div class="p-3 border-t-[4px] border-[var(--nb-border)] flex gap-2">
+            <input type="text" id="div-followup-input" class="flex-1 border-[2px] border-[var(--nb-border)] bg-[var(--nb-bg)] px-3 py-2 font-mono text-xs focus:outline-none" placeholder="Ask a follow-up or try another change...">
+            <button id="div-followup-send" class="brutal-btn bg-[#3DDC84] text-[#111] px-4 font-display uppercase">Send</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE: STUDIO -->
+      <section id="page-studio" class="page-section hidden p-4 sm:p-6 flex items-center justify-center h-full">
+        <div class="text-center p-12 border-[4px] border-[var(--nb-border)] bg-[var(--nb-surface)] shadow-[8px_8px_0_0_var(--nb-shadow)] transform -rotate-1">
+          <h2 class="font-display text-4xl uppercase mb-4 bg-[#B980F0] text-[#111] px-4 py-2 inline-block border-[3px] border-[var(--nb-border)]">Generative Studio</h2>
+          <p class="font-mono text-lg uppercase tracking-widest mt-4">Coming soon</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MOBILE DRAWER OVERLAY -->
+  <div id="drawer-overlay" class="hidden"></div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+  <!-- App JS (ES module) -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

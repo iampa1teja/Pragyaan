@@ -9,6 +9,8 @@ import { initCharacters, onEnterCharacters } from './characters.js';
 import { initTimeline, onEnterTimeline } from './timeline.js';
 import { initPerspective, onEnterPerspective } from './perspective.js';
 import { initDivergence, onEnterDivergence } from './divergence.js';
+import { initStudio, onEnterStudio } from './studio.js';
+import { initData, onEnterData } from './data.js';
 
 const STORAGE_KEY_STORY = 'nb-story-id';
 let currentStoryId = null;
@@ -30,7 +32,7 @@ export function showToast(message, type = 'info') {
   if (type === 'error') {
     toast.classList.add('bg-[#FF5C5C]', 'text-[#111]');
   } else {
-    toast.classList.add('bg-[#FFD23F]', 'text-[#111]');
+    toast.classList.add('bg-[var(--ac-yellow)]', 'text-[#111]');
   }
 
   toast.innerHTML = `
@@ -62,7 +64,7 @@ async function pollStatus(storyId) {
     if (!pill) return;
     const labels = { ingesting: 'INGESTING', ingested: 'INGESTED', ready: 'READY', failed: 'FAILED' };
     pill.textContent = labels[status] || status.toUpperCase();
-    pill.style.backgroundColor = { ingesting: '#FFD23F', ingested: '#4D8BFF', ready: '#3DDC84', failed: '#FF5C5C' }[status] || '#FFD23F';
+    pill.style.backgroundColor = { ingesting: 'var(--ac-yellow)', ingested: 'var(--ac-blue)', ready: 'var(--ac-green)', failed: '#FF5C5C' }[status] || 'var(--ac-yellow)';
   }
 
   const check = async () => {
@@ -196,7 +198,8 @@ const routes = {
   '/timeline': { id: 'page-timeline' },
   '/perspective': { id: 'page-perspective' },
   '/divergence': { id: 'page-divergence' },
-  '/studio': { id: 'page-studio' }
+  '/studio': { id: 'page-studio' },
+  '/data': { id: 'page-data' }
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -209,10 +212,37 @@ document.addEventListener('DOMContentLoaded', async () => {
   initTimeline({ getStoryId: () => currentStoryId, showToast });
   initPerspective({ getStoryId: () => currentStoryId, createChatInterface, showToast });
   initDivergence({ getStoryId: () => currentStoryId, createChatInterface, showToast });
+  initStudio({ getStoryId: () => currentStoryId, showToast });
+
+  function selectStory(id) {
+    updateGlobalStoryState(id);
+    homeSetStoryLoaded(id, showToast);
+    window.location.hash = '#/home';
+  }
+  function newStory() {
+    updateGlobalStoryState(null);
+    clearPollTimer();
+    document.getElementById('home-upload-state').classList.remove('hidden');
+    document.getElementById('home-building-state').classList.add('hidden');
+    document.getElementById('home-dashboard-state').classList.add('hidden');
+    resetUploadState();
+    window.location.hash = '#/home';
+  }
+  initData({ getStoryId: () => currentStoryId, onSelectStory: selectStory, onNewStory: newStory, showToast });
+
+  // Save Story + View Data (Home Quick Actions)
+  document.getElementById('save-story-btn')?.addEventListener('click', async () => {
+    if (!currentStoryId) return;
+    try { await api.saveStory(currentStoryId); showToast('Story saved', 'info'); }
+    catch (err) { showToast(err.message || 'Save failed', 'error'); }
+  });
+  document.getElementById('view-data-btn')?.addEventListener('click', () => {
+    window.location.hash = '#/data';
+  });
 
   const router = new Router(routes, async (path) => {
-    // Gate pages if no story
-    if (path !== '/home' && path !== '/studio' && !currentStoryId) {
+    // Data page (story library) is always accessible; other tool pages need a story
+    if (path !== '/home' && path !== '/data' && !currentStoryId) {
       return false;
     }
 
@@ -220,7 +250,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (path === '/timeline' && currentStoryId) await onEnterTimeline(currentStoryId);
     if (path === '/perspective' && currentStoryId) await onEnterPerspective(currentStoryId);
     if (path === '/divergence' && currentStoryId) await onEnterDivergence(currentStoryId);
-    
+    if (path === '/studio' && currentStoryId) await onEnterStudio(currentStoryId);
+    if (path === '/data') await onEnterData();
+
     return true;
   });
   

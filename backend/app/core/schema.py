@@ -75,6 +75,27 @@ class GenerateImageRequest(BaseModel):
     subject: str
 
 
+# --- Save / Data ---
+class SaveStoryRequest(BaseModel):
+    name: str | None = None
+
+
+class DataEntry(BaseModel):
+    id: str
+    name: str
+    type: str = "Note"
+    description: str = ""
+    created_at: str = ""
+    deletable: bool = True
+    path: str | None = None
+
+
+class AddEntryRequest(BaseModel):
+    name: str
+    type: str = "Note"
+    description: str = ""
+
+
 # --- Assets ---
 class AssetOut(BaseModel):
     id: str

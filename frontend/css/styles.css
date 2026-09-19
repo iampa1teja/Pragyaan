@@ -9,13 +9,29 @@
   --nb-text:    #111111;
   --nb-border:  #000000;
   --nb-shadow:  #000000;
+  --ac-yellow:  #FFD23F;
+  --ac-pink:    #FF5C8A;
+  --ac-green:   #3DDC84;
+  --ac-purple:  #B980F0;
+  --ac-blue:    #4D8BFF;
+  --nb-sidebar: #FFFFFF;
+  --nb-elevated:#FFFFFF;
+  --nb-muted:   #555;
 }
 .dark {
-  --nb-bg:      #14110F;
-  --nb-surface: #201B18;
-  --nb-text:    #F5F5F5;
-  --nb-border:  #F5F5F5;
-  --nb-shadow:  #000000;
+  --nb-bg:      #080B0F;
+  --nb-surface: #111820;
+  --nb-sidebar: #0D1218;
+  --nb-elevated:#151D26;
+  --nb-text:    #F4F4F0;
+  --nb-muted:   #9AA4AE;
+  --nb-border:  #FAF7F0;
+  --nb-shadow:  #7f7b7b;
+  --ac-yellow:  #F5FF00;
+  --ac-pink:    #FF5BBE;
+  --ac-green:   #65F6C0;
+  --ac-purple:  #A78BFA;
+  --ac-blue:    #8CB7FF;
 }
 
 html { scroll-behavior: smooth; }
@@ -54,6 +70,7 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
 }
+.dark .brutal-btn, .dark .brutal-hover { box-shadow:3px 3px 0 0 #000; }
 
 /* ============================================
    BRUTAL CARD HOVER
@@ -145,10 +162,18 @@ body {
   border-color: var(--nb-border);
 }
 .nav-item.nav-active {
-  background-color: #FFD23F;
+  background-color: var(--ac-yellow);
   color: #111;
   border-color: var(--nb-border);
   box-shadow: 4px 4px 0 0 var(--nb-shadow);
+}
+.dark .nav-item.nav-active {
+  box-shadow: none;
+  border-color: var(--ac-yellow);
+  color: #080B0F;
+}
+.dark .nav-item:hover {
+  border-color: var(--ac-yellow);
 }
 
 /* ============================================
@@ -197,6 +222,7 @@ body {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--nb-bg); }
 ::-webkit-scrollbar-thumb { background: var(--nb-border); }
+.dark ::-webkit-scrollbar-thumb { background:#26313C; }
 
 /* Timeline track line */
 .timeline-track-line {
@@ -208,6 +234,10 @@ body {
   background-color: var(--nb-border);
   z-index: 1;
 }
+
+.dark .tl-line { background:#26313C; box-shadow:0 0 8px rgba(245,255,0,.25); }
+.dark .tl-node { box-shadow:0 0 6px var(--c), 0 0 16px var(--c), inset 0 0 6px var(--c); }
+.dark .tl-card:hover { border-color:var(--c); box-shadow:0 0 18px -4px var(--c); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -235,7 +265,7 @@ body {
   box-shadow: 4px 4px 0 0 var(--nb-shadow);
 }
 .msg-user {
-  background-color: #B980F0;
+  background-color: var(--ac-purple);
   color: #111;
   align-self: flex-end;
   border-bottom-right-radius: 0;

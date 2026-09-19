@@ -4,7 +4,9 @@ from dataclasses import dataclass
 
 from agents import Agent, Runner, function_tool, RunContextWrapper
 
-from .core.utils import build_agent, now_iso
+from pathlib import Path
+
+from .core.utils import build_agent, now_iso, story_dir
 from .core.agent import (
     build_context_agent,
     build_character_interview_agent,
@@ -342,6 +344,151 @@ async def reset_context(story_id: str) -> int:
     """Clear the conversation history for a story (does NOT touch files or context.md)."""
     res = await mongo.chats().delete_many({"story_id": story_id})
     return res.deleted_count
+
+
+# ------------------------------------------------------------------ #
+# Save a story                                                        #
+# ------------------------------------------------------------------ #
+async def save_story(story_id: str, name: str | None = None) -> dict:
+    """Mark a story as saved (bookmarked) so it can be returned to later."""
+    fields = {"saved": True, "updated_at": now_iso()}
+    if name:
+        fields["title"] = name
+    await mongo.stories().update_one({"_id": story_id}, {"$set": fields})
+    return {"story_id": story_id, "saved": True}
+
+
+async def list_stories() -> list[dict]:
+    """All stories in Mongo (the story library), newest first."""
+    out = []
+    async for d in mongo.stories().find({}).sort("updated_at", -1):
+        out.append({
+            "id": d["_id"],
+            "title": d.get("title", "Untitled"),
+            "status": d.get("status", ""),
+            "saved": bool(d.get("saved", False)),
+            "n_chunks": d.get("n_chunks", 0),
+            "files": d.get("files", []),
+            "created_at": d.get("created_at", ""),
+        })
+    return out
+
+
+async def delete_story_full(story_id: str) -> bool:
+    """Permanently delete a story: Chroma collection, Mongo docs, and its data dir."""
+    try:
+        _get_chroma().delete(story_id)
+    except Exception:
+        pass
+    await mongo.stories().delete_one({"_id": story_id})
+    await mongo.chats().delete_many({"story_id": story_id})
+    await mongo.assets().delete_many({"story_id": story_id})
+    await mongo.entries().delete_many({"story_id": story_id})
+    import shutil
+    d = story_dir(story_id)
+    try:
+        if d.exists():
+            shutil.rmtree(d)
+    except Exception:
+        pass
+    return True
+
+
+# ------------------------------------------------------------------ #
+# Data page: unified view of characters + events + assets + entries   #
+# ------------------------------------------------------------------ #
+async def story_data(story_id: str) -> list[dict]:
+    """Aggregate everything known about a story into typed, deletable rows."""
+    rows: list[dict] = []
+
+    for c in characters_list(story_id):
+        rows.append({
+            "id": f"character:{c['name']}", "name": c["name"], "type": "Character",
+            "description": c.get("description", ""), "created_at": "", "deletable": True,
+        })
+    for i, ev in enumerate(timeline_events(story_id)):
+        rows.append({
+            "id": f"event:{i}", "name": ev["title"], "type": "Event",
+            "description": ev.get("description", ""), "created_at": "", "deletable": True,
+        })
+    async for a in mongo.assets().find({"story_id": story_id}).sort("created_at", -1):
+        rows.append({
+            "id": f"asset:{a['_id']}", "name": (a.get("prompt") or a["type"])[:60],
+            "type": "Asset", "description": a.get("prompt", ""),
+            "created_at": a.get("created_at", ""), "deletable": True, "path": a.get("path"),
+        })
+    async for e in mongo.entries().find({"story_id": story_id}).sort("created_at", -1):
+        rows.append({
+            "id": f"entry:{e['_id']}", "name": e["name"], "type": e.get("type", "Note"),
+            "description": e.get("description", ""), "created_at": e.get("created_at", ""),
+            "deletable": True,
+        })
+    return rows
+
+
+async def add_entry(story_id: str, name: str, type_: str, description: str) -> dict:
+    doc = {
+        "_id": uuid4().hex, "story_id": story_id, "name": name,
+        "type": type_ or "Note", "description": description, "created_at": now_iso(),
+    }
+    await mongo.entries().insert_one(doc)
+    return {"id": f"entry:{doc['_id']}", "name": name, "type": doc["type"],
+            "description": description, "created_at": doc["created_at"], "deletable": True}
+
+
+def _remove_bullet_from_section(story_id: str, section: str, matcher) -> bool:
+    sections = split_sections(_CTX.read(story_id))
+    lines = sections.get(section, "").split("\n")
+    kept, removed = [], False
+    for line in lines:
+        text = line.strip()
+        if text.startswith("- ") and matcher(text[2:].strip()) and not removed:
+            removed = True
+            continue
+        kept.append(line)
+    if removed:
+        sections[section] = "\n".join(kept).strip()
+        _CTX.write(story_id, sections)
+    return removed
+
+
+async def delete_data(story_id: str, row_id: str) -> bool:
+    """Delete a data row. row_id is 'character:<name>' | 'event:<i>' | 'asset:<id>' | 'entry:<id>'."""
+    kind, _, key = row_id.partition(":")
+
+    if kind == "asset":
+        a = await mongo.assets().find_one({"_id": key, "story_id": story_id})
+        if a and a.get("path"):
+            fname = a["path"].rsplit("/", 1)[-1]
+            f = story_dir(story_id) / "assets" / fname
+            try:
+                if f.exists():
+                    f.unlink()
+            except Exception:
+                pass
+        res = await mongo.assets().delete_one({"_id": key, "story_id": story_id})
+        return res.deleted_count > 0
+
+    if kind == "entry":
+        res = await mongo.entries().delete_one({"_id": key, "story_id": story_id})
+        return res.deleted_count > 0
+
+    if kind == "character":
+        return _remove_bullet_from_section(story_id, "Characters",
+                                           lambda b: b.split("|")[0].strip().lower() == key.lower())
+
+    if kind == "event":
+        try:
+            idx = int(key)
+        except ValueError:
+            return False
+        counter = {"n": -1}
+        def match(_):
+            counter["n"] += 1
+            return counter["n"] == idx
+        return _remove_bullet_from_section(story_id, "Timeline", match)
+
+    return False
 
 
 # ------------------------------------------------------------------ #

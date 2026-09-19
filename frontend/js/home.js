@@ -24,7 +24,7 @@ export function initHome({ onUploadFiles, getStoryId, renderMessage, updateGloba
 
   function updateFileList() {
     fileList.innerHTML = selectedFiles.map(f => 
-      `<span class="bg-[#FFD23F] text-[#111] font-mono text-[10px] px-2 py-1 border-[2px] border-[var(--nb-border)] truncate max-w-[150px]">${f.name}</span>`
+      `<span class="bg-[var(--ac-yellow)] text-[#111] font-mono text-[10px] px-2 py-1 border-[2px] border-[var(--nb-border)] truncate max-w-[150px]">${f.name}</span>`
     ).join('');
     
     if (selectedFiles.length > 0) {
@@ -121,9 +121,16 @@ export async function setStoryLoaded(storyId, showToast) {
     const assets = await api.listAssets(storyId);
     const dashAssets = document.getElementById('dash-assets-list');
     if (assets.length > 0) {
-      dashAssets.innerHTML = assets.map(a => `<div>${a.path || a.type}</div>`).join('');
+      dashAssets.innerHTML = assets.map(a => {
+        if (!a.path) return `<div class="aspect-square border-[2px] border-[var(--nb-border)] flex items-center justify-center bg-[var(--nb-bg)] text-[9px] uppercase">${a.type || 'Asset'}</div>`;
+        const title = (a.prompt || a.type || 'asset').replace(/"/g, '&quot;').slice(0, 120);
+        return `<div class="aspect-square border-[2px] border-[var(--nb-border)] overflow-hidden bg-[var(--nb-bg)] flex items-center justify-center" title="${title}">
+          <img src="${api.mediaUrl(a.path)}" alt="Story asset" class="w-full h-full object-cover"
+               onerror="this.remove();this.parentElement.insertAdjacentHTML('beforeend','<span class=\\'text-[9px] uppercase opacity-50\\'>Missing</span>')">
+        </div>`;
+      }).join('');
     } else {
-      dashAssets.innerHTML = 'None yet.';
+      dashAssets.innerHTML = '<span class="col-span-3">None yet.</span>';
     }
   } catch(e) {}
 }

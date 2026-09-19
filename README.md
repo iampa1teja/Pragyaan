@@ -1,6 +1,6 @@
 # StoryForge
 
-A multi-agent narrative exploration app. Upload a long-form story and explore it from every angle — chat with a main "narrative agent", interview characters, shift perspective, diverge the plot into alternate timelines, browse a generated timeline of events, and generate character/scene art.
+A multi-agent narrative exploration app. Upload a long-form story and explore it from every angle — chat with a main "narrative agent", interview characters, shift perspective, diverge the plot into alternate timelines, browse a generated timeline, generate character/scene art, and manage multiple stories.
 
 Built by **Team Zenith** (Siddharth, Jainendra, Pavan Teja).
 
@@ -8,11 +8,24 @@ Built by **Team Zenith** (Siddharth, Jainendra, Pavan Teja).
 
 ## How it works
 
-- You upload story files (`.pdf`, `.txt`, `.docx`, `.md`, or images).
+- You upload story files (`.pdf`, `.txt`, `.docx`, `.md`, or images — multiple at once).
 - The backend ingests them into a vector store (Chroma) and a **context agent** builds a structured `context.md` (characters, scenes, timeline, branches, assets).
 - A **Main Narrative Agent** orchestrates specialized **sub-agents** for character interviews, perspective shifts, divergence, and image generation — grounding every answer in the story.
 
 **Hybrid model split:** the orchestrator + context build run on a stronger model; the specialized sub-agents run on a faster/cheaper model, so they can fan out concurrently.
+
+---
+
+## Features
+
+- **Home** — upload stories; dashboard with files, story context, and generated assets.
+- **Characters** — interview any character at a chosen timeline point (knowledge-limited to that moment).
+- **Timeline** — visual event timeline; generate concept art per event.
+- **Perspective Shift** — reconstruct a scene from a character's point of view.
+- **Divergence Mode** — change an event and generate the alternate trajectory.
+- **Generative Studio** — character design + concept art via AI image generation.
+- **Data** — story library: switch between multiple stories, save/bookmark, or delete them.
+- Light + dark mode throughout.
 
 ---
 
@@ -33,7 +46,7 @@ Built by **Team Zenith** (Siddharth, Jainendra, Pavan Teja).
 
 1. **Python + [uv](https://docs.astral.sh/uv/)**
 2. **MongoDB** running locally (`mongodb://localhost:27017`)
-3. **An OpenAI API key** (default setup) — or a local **Ollama** install if you prefer to run models yourself.
+3. **An OpenAI API key** (default) — or a local **Ollama** install if you prefer to run models yourself.
 
 ---
 
@@ -75,12 +88,14 @@ python -m http.server 5500
 
 Open **http://localhost:5500**. If the backend is on another host, edit `BACKEND_URL` in `frontend/js/config.js`.
 
+> Tip: `python -m http.server` sends no cache headers — after editing frontend JS, hard-refresh (Ctrl+Shift+R) to avoid stale modules.
+
 ---
 
 ## Using it
 
-1. On **Home**, upload one or more story files and wait for processing (`ingesting → ready`; the context build takes ~30–90s).
-2. Once ready, explore via the sidebar: **Characters** (interview), **Timeline**, **Perspective Shift**, **Divergence Mode**, and **Generative Studio** (image generation).
+1. On **Home**, upload one or more story files and wait for processing (`ingesting → ready`; the context build takes ~10–90s depending on the model).
+2. Once ready, explore via the sidebar. Use **Data** to switch between multiple stories, and **Save Story** to bookmark the current one.
 
 ---
 
@@ -89,7 +104,11 @@ Open **http://localhost:5500**. If the backend is on another host, edit `BACKEND
 | Method | Path | Purpose |
 |---|---|---|
 | POST | `/api/stories` | upload story files (multipart, field `files`) |
+| GET | `/api/stories` | list all stories (library) |
 | GET | `/api/stories/{id}` | processing status |
+| DELETE | `/api/stories/{id}` | delete a story (files + Chroma + Mongo) |
+| POST | `/api/stories/{id}/save` | bookmark a story |
+| POST | `/api/stories/{id}/reset` | clear chat history (keeps files/context) |
 | POST | `/api/chat` | main narrative agent |
 | GET | `/api/stories/{id}/characters` | character list |
 | GET | `/api/stories/{id}/timeline` | timeline events |
@@ -98,9 +117,20 @@ Open **http://localhost:5500**. If the backend is on another host, edit `BACKEND
 | POST | `/api/stories/{id}/divergence` | change an event, generate consequences |
 | POST | `/api/stories/{id}/generate-image` | generate character/concept art |
 | GET | `/api/stories/{id}/assets` | list generated assets |
-| POST | `/api/stories/{id}/reset` | clear conversation (keeps files/context) |
 
 Generated images are served under `/media/...`.
+
+---
+
+## Reset the database (dev)
+
+Wipe all stories, chats, assets and Chroma data. Stop the backend first (Chroma files lock on Windows), then:
+
+```bash
+cd backend
+uv run python -m app.core.reset          # asks to confirm
+uv run python -m app.core.reset --yes    # skip confirmation
+```
 
 ---
 

@@ -166,9 +166,9 @@ function updatePill(status) {
   // Update color
   pill.className = pill.className.replace(/bg-\[#\w+\]/g, '').trim();
   const colors = {
-    ingesting: 'bg-[#FFD23F]',
-    ingested: 'bg-[#4D8BFF]',
-    ready: 'bg-[#3DDC84]',
+    ingesting: 'bg-[var(--ac-yellow)]',
+    ingested: 'bg-[var(--ac-blue)]',
+    ready: 'bg-[var(--ac-green)]',
     failed: 'bg-[#FF5C5C]',
   };
   if (colors[status]) pill.classList.add(colors[status]);

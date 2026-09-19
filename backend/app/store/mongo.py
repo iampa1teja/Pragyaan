@@ -27,6 +27,9 @@ def assets():
 def users():
     return get_db()["users"]
 
+def entries():
+    return get_db()["entries"]
+
 async def close():
     global _client
     if _client is not None:

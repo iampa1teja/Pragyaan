@@ -51,7 +51,7 @@ export function initCharacters({ getStoryId, createChatInterface, showToast }) {
       
       // Populate Characters
       charList.innerHTML = chars.map(c => `
-        <button class="char-btn text-left p-2 border-[2px] border-[var(--nb-border)] bg-[var(--nb-bg)] hover:bg-[#FF5C8A] hover:text-[#111] transition-colors" data-name="${c.name}">
+        <button class="char-btn text-left p-2 border-[2px] border-[var(--nb-border)] bg-[var(--nb-bg)] hover:bg-[var(--ac-pink)] hover:text-[#111] transition-colors" data-name="${c.name}">
           <div class="font-display uppercase text-xs">${c.name}</div>
           <div class="font-mono text-[9px] opacity-70">${c.role}</div>
         </button>
@@ -59,8 +59,8 @@ export function initCharacters({ getStoryId, createChatInterface, showToast }) {
       
       document.querySelectorAll('.char-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('bg-[#FF5C8A]', 'text-[#111]'));
-          btn.classList.add('bg-[#FF5C8A]', 'text-[#111]');
+          document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('bg-[var(--ac-pink)]', 'text-[#111]'));
+          btn.classList.add('bg-[var(--ac-pink)]', 'text-[#111]');
           const name = btn.dataset.name;
           activeCharacter = chars.find(x => x.name === name);
           updateCharHeader();
@@ -68,7 +68,7 @@ export function initCharacters({ getStoryId, createChatInterface, showToast }) {
           const traitsContainer = document.getElementById('char-traits');
           if (activeCharacter.traits && activeCharacter.traits.length > 0) {
             traitsContainer.innerHTML = activeCharacter.traits.map(t => 
-              `<span class="bg-[#FFD23F] text-[#111] font-mono text-[9px] px-2 py-0.5 border-[2px] border-[var(--nb-border)]">${t}</span>`
+              `<span class="bg-[var(--ac-yellow)] text-[#111] font-mono text-[9px] px-2 py-0.5 border-[2px] border-[var(--nb-border)]">${t}</span>`
             ).join('');
           } else {
             traitsContainer.innerHTML = '';

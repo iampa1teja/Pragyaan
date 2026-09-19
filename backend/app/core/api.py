@@ -7,6 +7,7 @@ from .schema import (
     StoryUploadResponse, StoryOut, ChatRequest, ChatResponse, AssetOut,
     InterviewRequest, PerspectiveRequest, DivergenceRequest,
     CharacterOut, TimelineEvent, GenerateImageRequest,
+    SaveStoryRequest, DataEntry, AddEntryRequest,
 )
 from .utils import story_dir, ensure_dir, now_iso
 from .constants import StoryStatus
@@ -14,7 +15,8 @@ from ..services.ingestion import ingest_story
 from ..orchestrator import (
     build_context, run_orchestrator, timeline_events, characters_list,
     run_interview, run_perspective, run_divergence, reset_context,
-    run_generate_image,
+    run_generate_image, save_story, story_data, add_entry, delete_data,
+    list_stories, delete_story_full,
 )
 from ..store import mongo
 
@@ -77,6 +79,17 @@ async def upload_story(background: BackgroundTasks, files: list[UploadFile] = Fi
     return StoryUploadResponse(id=story_id, status=StoryStatus.INGESTING)
 
 
+@router.get("/stories")
+async def get_stories():
+    return await list_stories()
+
+
+@router.delete("/stories/{story_id}")
+async def delete_story(story_id: str):
+    await delete_story_full(story_id)
+    return {"deleted": True, "id": story_id}
+
+
 @router.get("/stories/{story_id}", response_model=StoryOut)
 async def get_story(story_id: str):
     doc = await mongo.stories().find_one({"_id": story_id})
@@ -111,6 +124,37 @@ async def reset(story_id: str):
     await mongo.stories().find_one({"_id": story_id})  # existence not required to clear
     cleared = await reset_context(story_id)
     return {"story_id": story_id, "cleared_messages": cleared}
+
+
+@router.post("/stories/{story_id}/save")
+async def save(story_id: str, req: SaveStoryRequest):
+    doc = await mongo.stories().find_one({"_id": story_id})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Story not found")
+    return await save_story(story_id, req.name)
+
+
+# ------------------------------------------------------------------ #
+# Data page: list / add / delete entries                              #
+# ------------------------------------------------------------------ #
+@router.get("/stories/{story_id}/data", response_model=list[DataEntry])
+async def get_data(story_id: str):
+    await _get_ready_story(story_id)
+    return [DataEntry(**r) for r in await story_data(story_id)]
+
+
+@router.post("/stories/{story_id}/data", response_model=DataEntry)
+async def post_data(story_id: str, req: AddEntryRequest):
+    await _get_ready_story(story_id)
+    return DataEntry(**await add_entry(story_id, req.name, req.type, req.description))
+
+
+@router.delete("/stories/{story_id}/data/{row_id:path}")
+async def del_data(story_id: str, row_id: str):
+    ok = await delete_data(story_id, row_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Entry not found")
+    return {"deleted": True, "id": row_id}
 
 
 # ------------------------------------------------------------------ #

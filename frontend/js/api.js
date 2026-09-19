@@ -95,3 +95,53 @@ export async function sendDivergence(storyId, payload) {
 export async function listAssets(storyId) {
   return fetchAPI(`/stories/${storyId}/assets`);
 }
+
+export async function saveStory(storyId, name) {
+  return fetchAPI(`/stories/${storyId}/save`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: name || null }),
+  });
+}
+
+export async function listStories() {
+  return fetchAPI(`/stories`);
+}
+
+export async function deleteStory(storyId) {
+  return fetchAPI(`/stories/${storyId}`, { method: 'DELETE' });
+}
+
+export async function getData(storyId) {
+  return fetchAPI(`/stories/${storyId}/data`);
+}
+
+export async function addEntry(storyId, payload) {
+  // payload: { name, type, description }
+  return fetchAPI(`/stories/${storyId}/data`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteData(storyId, rowId) {
+  return fetchAPI(`/stories/${storyId}/data/${rowId}`, { method: 'DELETE' });
+}
+
+export async function generateImage(storyId, payload) {
+  // payload: { kind: 'character' | 'concept', subject }
+  return fetchAPI(`/stories/${storyId}/generate-image`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+
+// Turn a backend "/media/..." path into an absolute URL (BACKEND_URL ends with /api).
+export function mediaUrl(path) {
+  if (!path) return '';
+  if (/^https?:\/\//.test(path)) return path;
+  const origin = BACKEND_URL.replace(/\/api\/?$/, '');
+  return `${origin}${path}`;
+}

@@ -27,35 +27,35 @@ function isMobile() {
 }
 
 function applyLayout() {
-  if (!leftSidebar || !rightSidebar) return;
+  if (!leftSidebar) return;
 
   if (isMobile()) {
     // On mobile, sidebars are drawers (overlay)
     leftSidebar.classList.toggle('sidebar-drawer-open', state.leftOpen);
     leftSidebar.classList.toggle('sidebar-drawer-closed', !state.leftOpen);
-    rightSidebar.classList.toggle('sidebar-drawer-open-right', state.rightOpen);
-    rightSidebar.classList.toggle('sidebar-drawer-closed-right', !state.rightOpen);
+    rightSidebar?.classList.toggle('sidebar-drawer-open-right', state.rightOpen);
+    rightSidebar?.classList.toggle('sidebar-drawer-closed-right', !state.rightOpen);
     overlay.classList.toggle('hidden', !state.leftOpen && !state.rightOpen);
 
     // Remove desktop classes
     leftSidebar.classList.remove('sidebar-collapsed', 'sidebar-expanded');
-    rightSidebar.classList.remove('right-collapsed', 'right-expanded');
+    rightSidebar?.classList.remove('right-collapsed', 'right-expanded');
   } else {
     // Desktop: width transitions
     leftSidebar.classList.remove('sidebar-drawer-open', 'sidebar-drawer-closed');
-    rightSidebar.classList.remove('sidebar-drawer-open-right', 'sidebar-drawer-closed-right');
+    rightSidebar?.classList.remove('sidebar-drawer-open-right', 'sidebar-drawer-closed-right');
     overlay.classList.add('hidden');
 
     if (state.focusMode) {
       leftSidebar.classList.add('sidebar-collapsed');
       leftSidebar.classList.remove('sidebar-expanded');
-      rightSidebar.classList.add('right-collapsed');
-      rightSidebar.classList.remove('right-expanded');
+      rightSidebar?.classList.add('right-collapsed');
+      rightSidebar?.classList.remove('right-expanded');
     } else {
       leftSidebar.classList.toggle('sidebar-collapsed', !state.leftOpen);
       leftSidebar.classList.toggle('sidebar-expanded', state.leftOpen);
-      rightSidebar.classList.toggle('right-collapsed', !state.rightOpen);
-      rightSidebar.classList.toggle('right-expanded', state.rightOpen);
+      rightSidebar?.classList.toggle('right-collapsed', !state.rightOpen);
+      rightSidebar?.classList.toggle('right-expanded', state.rightOpen);
     }
   }
 
@@ -72,7 +72,7 @@ function applyLayout() {
   // Update focus button state
   const focusBtn = document.getElementById('focus-toggle');
   if (focusBtn) {
-    focusBtn.classList.toggle('bg-[#FFD23F]', state.focusMode);
+    focusBtn.classList.toggle('bg-[var(--ac-yellow)]', state.focusMode);
     focusBtn.classList.toggle('text-[#111]', state.focusMode);
   }
 }

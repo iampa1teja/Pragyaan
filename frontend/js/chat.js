@@ -157,7 +157,7 @@ function appendMessage(role, text) {
 
   if (role === 'user') {
     bubble.classList.add(
-      'bg-[#FFD23F]', 'text-[#111]',
+      'bg-[var(--ac-yellow)]', 'text-[#111]',
       'shadow-[4px_4px_0_0_var(--nb-shadow)]', 'font-medium'
     );
   } else {

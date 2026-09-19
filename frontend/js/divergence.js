@@ -40,7 +40,7 @@ export function initDivergence({ getStoryId, showToast }) {
       const actions = document.createElement('div');
       actions.className = 'flex gap-2 mt-2';
       actions.innerHTML = `
-        <button class="brutal-btn-sm bg-[#FFD23F] text-[#111] font-mono text-[9px] px-2 py-1 uppercase explore-further-btn">Explore Further →</button>
+        <button class="brutal-btn-sm bg-[var(--ac-yellow)] text-[#111] font-mono text-[9px] px-2 py-1 uppercase explore-further-btn">Explore Further →</button>
         <button class="brutal-btn-sm bg-[var(--nb-surface)] text-[var(--nb-text)] font-mono text-[9px] px-2 py-1 uppercase">Compare with Original</button>
         <button class="brutal-btn-sm bg-[var(--nb-surface)] text-[var(--nb-text)] font-mono text-[9px] px-2 py-1 uppercase">Save as Alt. Timeline</button>
       `;

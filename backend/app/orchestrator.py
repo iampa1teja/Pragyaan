@@ -15,6 +15,7 @@ from .core.agent import (
     build_analysis_agent,
     build_character_design_agent,
     build_concept_art_agent,
+    build_music_agent
 )
 from .core.constants import CONTEXT_SECTIONS, StoryStatus, AssetType
 from .store.context_store import ContextStore, split_sections

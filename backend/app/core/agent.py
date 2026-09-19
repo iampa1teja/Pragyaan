@@ -7,6 +7,9 @@ def _fast() -> "object":
     """Fast secondary model for specialized sub-agents (built per call)."""
     return get_subagent_model()
 
+def build_music_agent() -> Agent:
+    "Suggests a music based on the mood of a specific scene"
+    return build_agent(name="music", prompt_file = "music")
 
 def build_context_agent() -> Agent:
     """Turns raw story text into the 5 markdown sections (bodies only). Runs on the primary model for extraction quality."""

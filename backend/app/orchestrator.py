@@ -1,4 +1,5 @@
 import json
+from uuid import uuid4
 from dataclasses import dataclass
 
 from agents import Agent, Runner, function_tool, RunContextWrapper
@@ -10,12 +11,15 @@ from .core.agent import (
     build_perspective_agent,
     build_divergence_agent,
     build_analysis_agent,
+    build_character_design_agent,
+    build_concept_art_agent,
 )
-from .core.constants import CONTEXT_SECTIONS, StoryStatus
+from .core.constants import CONTEXT_SECTIONS, StoryStatus, AssetType
 from .store.context_store import ContextStore, split_sections
 from .store.chroma_store import ChromaStore
 from .store import mongo
 from .services.embeddings import embed_query
+from .services.image_gen import generate_image
 
 HISTORY_LIMIT = 10
 
@@ -338,6 +342,42 @@ async def reset_context(story_id: str) -> int:
     """Clear the conversation history for a story (does NOT touch files or context.md)."""
     res = await mongo.chats().delete_many({"story_id": story_id})
     return res.deleted_count
+
+
+# ------------------------------------------------------------------ #
+# Generative Studio: image generation                                 #
+# ------------------------------------------------------------------ #
+async def run_generate_image(story_id: str, kind: str, subject: str) -> dict:
+    """A visual agent crafts a detailed prompt from the story, then OpenAI renders it."""
+    agent = (
+        build_concept_art_agent(CONTEXT_TOOLS)
+        if kind == "concept"
+        else build_character_design_agent(CONTEXT_TOOLS)
+    )
+    result = await Runner.run(
+        agent, f"Subject: {subject}", context=StoryCtx(story_id=story_id)
+    )
+    image_prompt = result.final_output
+
+    url = await generate_image(image_prompt, story_id)
+
+    asset = {
+        "_id": uuid4().hex,
+        "story_id": story_id,
+        "type": AssetType.IMAGE.value,
+        "path": url,
+        "prompt": image_prompt,
+        "created_at": now_iso(),
+    }
+    await mongo.assets().insert_one(asset)
+    return {
+        "id": asset["_id"],
+        "story_id": story_id,
+        "type": AssetType.IMAGE.value,
+        "path": url,
+        "prompt": image_prompt,
+        "created_at": asset["created_at"],
+    }
 
 
 def read_outline_text(story_id: str) -> str:

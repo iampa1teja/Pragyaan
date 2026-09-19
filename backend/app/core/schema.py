@@ -69,6 +69,12 @@ class TimelineEvent(BaseModel):
     tags: list[str] = []
 
 
+# --- Generative Studio ---
+class GenerateImageRequest(BaseModel):
+    kind: str = "character"   # "character" or "concept"
+    subject: str
+
+
 # --- Assets ---
 class AssetOut(BaseModel):
     id: str

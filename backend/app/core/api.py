@@ -6,7 +6,7 @@ from fastapi import APIRouter, UploadFile, File, BackgroundTasks, HTTPException
 from .schema import (
     StoryUploadResponse, StoryOut, ChatRequest, ChatResponse, AssetOut,
     InterviewRequest, PerspectiveRequest, DivergenceRequest,
-    CharacterOut, TimelineEvent,
+    CharacterOut, TimelineEvent, GenerateImageRequest,
 )
 from .utils import story_dir, ensure_dir, now_iso
 from .constants import StoryStatus
@@ -14,6 +14,7 @@ from ..services.ingestion import ingest_story
 from ..orchestrator import (
     build_context, run_orchestrator, timeline_events, characters_list,
     run_interview, run_perspective, run_divergence, reset_context,
+    run_generate_image,
 )
 from ..store import mongo
 
@@ -152,6 +153,16 @@ async def divergence(story_id: str, req: DivergenceRequest):
     history = [m.model_dump() for m in req.history]
     reply = await run_divergence(story_id, req.event, req.change, req.message, history)
     return ChatResponse(reply=reply)
+
+
+# ------------------------------------------------------------------ #
+# Generative Studio: image generation                                 #
+# ------------------------------------------------------------------ #
+@router.post("/stories/{story_id}/generate-image", response_model=AssetOut)
+async def generate_image_ep(story_id: str, req: GenerateImageRequest):
+    await _get_ready_story(story_id)
+    asset = await run_generate_image(story_id, req.kind, req.subject)
+    return AssetOut(**asset)
 
 
 # ------------------------------------------------------------------ #

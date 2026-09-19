@@ -1,8 +1,10 @@
 from functools import lru_cache 
 from pydantic_settings import BaseSettings, SettingsConfigDict 
 
-class Settings(BaseSettings): 
+class Settings(BaseSettings):
     app_env: str
+    llm_provider: str = "ollama"   # "ollama" or "openai"
+    openai_api_key: str = ""
     ollama_base_url: str
     llm_model: str
     embed_model: str

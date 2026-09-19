@@ -2,20 +2,31 @@ from openai import AsyncOpenAI
 from agents import OpenAIChatCompletionsModel, set_tracing_disabled
 from ..core.config import get_settings
 
-def _client(base_url: str) -> AsyncOpenAI:
+def _ollama(base_url: str) -> AsyncOpenAI:
     # Generous timeout for slow local models, but finite + few retries so a
     # dropped SSH tunnel / dead Ollama fails fast instead of hanging forever.
     return AsyncOpenAI(base_url=base_url, api_key="ollama", timeout=300.0, max_retries=1)
 
 
+def _openai() -> AsyncOpenAI:
+    return AsyncOpenAI(api_key=get_settings().openai_api_key, timeout=120.0, max_retries=2)
+
+
 def get_client():
     """Primary endpoint (orchestrator, context agent, embeddings)."""
-    return _client(get_settings().ollama_base_url)
+    s = get_settings()
+    return _openai() if s.llm_provider == "openai" else _ollama(s.ollama_base_url)
 
 
 def get_subagent_client():
     """Fast secondary endpoint for specialized sub-agents."""
-    return _client(get_settings().subagent_base_url)
+    s = get_settings()
+    return _openai() if s.llm_provider == "openai" else _ollama(s.subagent_base_url)
+
+
+def get_image_client() -> AsyncOpenAI:
+    """OpenAI client for image generation (requires the openai provider/key)."""
+    return _openai()
 
 
 def get_model(name: str | None = None) -> OpenAIChatCompletionsModel:
